@@ -25,7 +25,7 @@
             border: 2px solid #444;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            background-color: #fff;
+            /* background-color: #fff; */
         }
 
         #circularity {
@@ -61,14 +61,16 @@
     <canvas id="drawingCanvas"></canvas>
     <div id="circularity">Circularity: N/A</div>
     <button onclick="clearCanvas()">Clear Canvas</button>
+    <button id="copyButton" style="display:none;">Copy Result</button>
 
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const context = canvas.getContext('2d');
         const circularityDisplay = document.getElementById('circularity');
+        const copyButton = document.getElementById('copyButton');
 
-        canvas.width = window.innerWidth * 0.8;
-        canvas.height = window.innerHeight * 0.8;
+        canvas.width = window.innerWidth * 1;
+        canvas.height = window.innerHeight * 0.5;
 
         let drawing = false;
         let points = [];
@@ -80,7 +82,6 @@
             radius: 5
         };
 
-        // Draw the initial dot
         drawDot();
 
         canvas.addEventListener('mousedown', startDrawing);
@@ -100,6 +101,7 @@
 
         function stopDrawing() {
             drawing = false;
+            showCopyButton();
         }
 
         function draw(event) {
@@ -108,7 +110,7 @@
             const rect = canvas.getBoundingClientRect();
             let x, y;
 
-            if (event.type === 'mousemove') {
+            if (event.type === 'mousemove' || event.type === 'mousedown') {
                 x = event.clientX - rect.left;
                 y = event.clientY - rect.top;
             } else if (event.type === 'touchmove') {
@@ -119,28 +121,20 @@
 
             points.push({ x, y });
 
-            // Calculate circularity
             const circularity = calculateCircularity();
 
-            // Draw segments based on circularity change
             if (points.length > 1) {
                 const lastPoint = points[points.length - 2];
-
                 context.beginPath();
                 context.moveTo(lastPoint.x, lastPoint.y);
-
-                // Set line width
-                context.lineWidth = 5; // Increased line width
+                context.lineWidth = 5;
                 context.lineCap = 'round';
                 context.strokeStyle = circularity > previousCircularity ? 'green' : 'red';
                 context.lineTo(x, y);
                 context.stroke();
             }
 
-            // Update previous circularity
             previousCircularity = circularity;
-
-            // Update circularity display
             circularityDisplay.innerText = `Circularity: ${circularity.toFixed(2)}%`;
 
             event.preventDefault();
@@ -156,10 +150,9 @@
         function calculateCircularity() {
             if (points.length < 2) {
                 circularityDisplay.innerText = "Circularity: N/A";
-                return 0; // Return 0 when not enough points
+                return 0;
             }
 
-            // Calculate area using the shoelace formula
             let area = 0;
             for (let i = 0; i < points.length; i++) {
                 const j = (i + 1) % points.length;
@@ -167,7 +160,6 @@
             }
             area = Math.abs(area) / 2;
 
-            // Calculate perimeter
             let perimeter = 0;
             for (let i = 1; i < points.length; i++) {
                 const dx = points[i].x - points[i - 1].x;
@@ -175,17 +167,13 @@
                 perimeter += Math.sqrt(dx * dx + dy * dy);
             }
 
-            // Close the shape if it's not closed
             if (points.length > 2) {
                 const dx = points[0].x - points[points.length - 1].x;
                 const dy = points[0].y - points[points.length - 1].y;
                 perimeter += Math.sqrt(dx * dx + dy * dy);
             }
 
-            // Calculate circularity
             const circularity = (4 * Math.PI * area) / (perimeter * perimeter);
-
-            // Clamp circularity between 0 and 1 and convert to percentage
             return Math.min(circularity * 100, 100);
         }
 
@@ -194,8 +182,35 @@
             circularityDisplay.innerText = "Circularity: N/A";
             points = [];
             previousCircularity = 0;
-            drawDot(); // Redraw the initial dot
+            drawDot();
+            copyButton.style.display = "none";
         }
+
+        function showCopyButton() {
+            const circularity = previousCircularity.toFixed(2);
+            copyButton.style.display = "block";
+            copyButton.onclick = copyToClipboard;
+        }
+
+        async function copyToClipboard() {
+            const circularity = previousCircularity.toFixed(2);
+            const message = `Hey, I got ${circularity}% on the circularity test! How much can you get?`;
+            try {
+                await navigator.clipboard.writeText(message);
+                copyButton.innerText = "Copied!";
+                setTimeout(() => {
+                    copyButton.innerText = "Copy Result";
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        }
+        // Touch event listener for the copy button
+        copyButton.addEventListener('touchend', (event) => {
+            event.preventDefault();
+            document.execCommand("copy");
+            copyToClipboard();
+        });
     </script>
 </body>
 </html>
