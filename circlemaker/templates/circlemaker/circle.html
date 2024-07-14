@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,13 +25,19 @@
             border: 2px solid #444;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            /* background-color: #fff; */
         }
 
         #circularity {
             margin-top: 15px;
             font-size: 1.2em;
             color: #ddd;
+        }
+
+        #errorMessage {
+            color: red;
+            margin-top: 5px;
+            font-size: 1.2em;
+            display: none;
         }
 
         button {
@@ -60,6 +66,7 @@
     <h1>Draw a Circle</h1>
     <canvas id="drawingCanvas"></canvas>
     <div id="circularity">Circularity: N/A</div>
+    <div id="errorMessage">Error: Not a circle!</div>
     <button onclick="clearCanvas()">Clear Canvas</button>
     <button id="copyButton" style="display:none;">Copy Result</button>
 
@@ -67,9 +74,10 @@
         const canvas = document.getElementById('drawingCanvas');
         const context = canvas.getContext('2d');
         const circularityDisplay = document.getElementById('circularity');
+        const errorMessage = document.getElementById('errorMessage');
         const copyButton = document.getElementById('copyButton');
 
-        canvas.width = window.innerWidth * 1;
+        canvas.width = window.innerWidth * 0.8;
         canvas.height = window.innerHeight * 0.5;
 
         let drawing = false;
@@ -96,6 +104,7 @@
             points = [];
             context.clearRect(0, 0, canvas.width, canvas.height);
             drawDot();
+            errorMessage.style.display = "none"; // Hide error message
             event.preventDefault();
         }
 
@@ -127,7 +136,7 @@
                 const lastPoint = points[points.length - 2];
                 context.beginPath();
                 context.moveTo(lastPoint.x, lastPoint.y);
-                context.lineWidth = 5;
+                context.lineWidth = 10;
                 context.lineCap = 'round';
                 context.strokeStyle = circularity > previousCircularity ? 'green' : 'red';
                 context.lineTo(x, y);
@@ -183,13 +192,29 @@
             points = [];
             previousCircularity = 0;
             drawDot();
+            errorMessage.style.display = "none"; // Hide error message
             copyButton.style.display = "none";
         }
 
         function showCopyButton() {
             const circularity = previousCircularity.toFixed(2);
-            copyButton.style.display = "block";
-            copyButton.onclick = copyToClipboard;
+            const isCircle = points.length > 2 && arePointsClose(points[0], points[points.length - 1]);
+
+            if (isCircle) {
+                copyButton.style.display = "block";
+                copyButton.onclick = copyToClipboard;
+                errorMessage.style.display = "none"; // Hide error message if it's a circle
+            } else {
+                errorMessage.style.display = "block"; // Show error message if not a circle
+                copyButton.style.display = "none"; // Hide copy button
+            }
+        }
+
+        function arePointsClose(start, end) {
+            const threshold = 10; // Distance threshold to consider the points "close enough"
+            const dx = start.x - end.x;
+            const dy = start.y - end.y;
+            return Math.sqrt(dx * dx + dy * dy) < threshold;
         }
 
         async function copyToClipboard() {
@@ -205,12 +230,254 @@
                 console.error('Failed to copy: ', err);
             }
         }
-        // Touch event listener for the copy button
-        copyButton.addEventListener('touchend', (event) => {
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draw Circle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #f39c12;
+            margin-bottom: 20px;
+        }
+
+        #drawingCanvas {
+            border: 2px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #circularity {
+            margin-top: 15px;
+            font-size: 1.2em;
+            color: #ddd;
+        }
+
+        #errorMessage {
+            color: red;
+            margin-top: 5px;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f39c12;
+            color: white;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #d18305;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <h1>Draw a Circle</h1>
+    <canvas id="drawingCanvas"></canvas>
+    <div id="circularity">Circularity: N/A</div>
+    <div id="errorMessage">Error: Not a circle!</div>
+    <button onclick="clearCanvas()">Clear Canvas</button>
+    <button id="copyButton" style="display:none;">Copy Result</button>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const context = canvas.getContext('2d');
+        const circularityDisplay = document.getElementById('circularity');
+        const errorMessage = document.getElementById('errorMessage');
+        const copyButton = document.getElementById('copyButton');
+
+        canvas.width = window.innerWidth * 0.8;
+        canvas.height = window.innerHeight * 0.5;
+
+        let drawing = false;
+        let points = [];
+        let previousCircularity = 0;
+
+        const dot = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 5
+        };
+
+        const blockedAreaRadius = 50; // Radius of the blocked area around the dot
+
+        drawDot();
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchmove', draw);
+
+        function startDrawing(event) {
+            drawing = true;
+            points = [];
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawDot();
+            errorMessage.style.display = "none"; // Hide error message
             event.preventDefault();
-            document.execCommand("copy");
-            copyToClipboard();
-        });
+        }
+
+        function stopDrawing() {
+            drawing = false;
+            showCopyButton();
+        }
+
+        function draw(event) {
+            if (!drawing) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+
+            if (event.type === 'mousemove' || event.type === 'mousedown') {
+                x = event.clientX - rect.left;
+                y = event.clientY - rect.top;
+            } else if (event.type === 'touchmove') {
+                const touch = event.touches[0];
+                x = touch.clientX - rect.left;
+                y = touch.clientY - rect.top;
+            }
+
+            // Check if the point is outside the blocked area
+            if (isOutsideBlockedArea(x, y)) {
+                points.push({ x, y });
+
+                const circularity = calculateCircularity();
+
+                if (points.length > 1) {
+                    const lastPoint = points[points.length - 2];
+                    context.beginPath();
+                    context.moveTo(lastPoint.x, lastPoint.y);
+                    context.lineWidth = 10;
+                    context.lineCap = 'round';
+                    context.strokeStyle = circularity > previousCircularity ? 'green' : 'red';
+                    context.lineTo(x, y);
+                    context.stroke();
+                }
+
+                previousCircularity = circularity;
+                circularityDisplay.innerText = `Circularity: ${circularity.toFixed(2)}%`;
+            }
+
+            event.preventDefault();
+        }
+
+        function drawDot() {
+            context.beginPath();
+            context.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2, true);
+            context.fillStyle = 'red';
+            context.fill();
+        }
+
+        function isOutsideBlockedArea(x, y) {
+            const dx = dot.x - x;
+            const dy = dot.y - y;
+            return Math.sqrt(dx * dx + dy * dy) > blockedAreaRadius;
+        }
+
+        function calculateCircularity() {
+            if (points.length < 2) {
+                circularityDisplay.innerText = "Circularity: N/A";
+                return 0;
+            }
+
+            let area = 0;
+            for (let i = 0; i < points.length; i++) {
+                const j = (i + 1) % points.length;
+                area += points[i].x * points[j].y - points[j].x * points[i].y;
+            }
+            area = Math.abs(area) / 2;
+
+            let perimeter = 0;
+            for (let i = 1; i < points.length; i++) {
+                const dx = points[i].x - points[i - 1].x;
+                const dy = points[i].y - points[i - 1].y;
+                perimeter += Math.sqrt(dx * dx + dy * dy);
+            }
+
+            if (points.length > 2) {
+                const dx = points[0].x - points[points.length - 1].x;
+                const dy = points[0].y - points[points.length - 1].y;
+                perimeter += Math.sqrt(dx * dx + dy * dy);
+            }
+
+            const circularity = (4 * Math.PI * area) / (perimeter * perimeter);
+            return Math.min(circularity * 100, 100);
+        }
+
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            circularityDisplay.innerText = "Circularity: N/A";
+            points = [];
+            previousCircularity = 0;
+            drawDot();
+            errorMessage.style.display = "none"; // Hide error message
+            copyButton.style.display = "none";
+        }
+
+        function showCopyButton() {
+            const circularity = previousCircularity.toFixed(2);
+            const isCircle = points.length > 2 && arePointsClose(points[0], points[points.length - 1]);
+
+            if (isCircle) {
+                copyButton.style.display = "block";
+                copyButton.onclick = copyToClipboard;
+                errorMessage.style.display = "none"; // Hide error message if it's a circle
+            } else {
+                errorMessage.style.display = "block"; // Show error message if not a circle
+                copyButton.style.display = "none"; // Hide copy button
+            }
+        }
+
+        function arePointsClose(start, end) {
+            const threshold = 10; // Distance threshold to consider the points "close enough"
+            const dx = start.x - end.x;
+            const dy = start.y - end.y;
+            return Math.sqrt(dx * dx + dy * dy) < threshold;
+        }
+
+        async function copyToClipboard() {
+            const circularity = previousCircularity.toFixed(2);
+            const message = `Hey, I got ${circularity}% on the circularity test! How much can you get? Try it out at https://drawcircles.vercel.app`;
+            try {
+                await navigator.clipboard.writeText(message);
+                copyButton.innerText = "Copied!";
+                setTimeout(() => {
+                    copyButton.innerText = "Copy Result";
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+        }
     </script>
 </body>
 </html>
