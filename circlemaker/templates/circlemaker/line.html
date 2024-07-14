@@ -25,7 +25,7 @@
             border: 2px solid #444;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            background-color: #fff;
+            /* background-color: #fff; */
         }
 
         #lineStraightness {
@@ -61,14 +61,16 @@
     <canvas id="drawingCanvas"></canvas>
     <div id="lineStraightness">Straightness: N/A</div>
     <button onclick="clearCanvas()">Clear Canvas</button>
+    <button id="copyButton" style="display:none;">Copy Result</button>
 
     <script>
         const canvas = document.getElementById('drawingCanvas');
         const context = canvas.getContext('2d');
         const lineStraightnessDisplay = document.getElementById('lineStraightness');
+        const copyButton = document.getElementById('copyButton');
 
-        canvas.width = window.innerWidth * 0.8;
-        canvas.height = window.innerHeight * 0.8;
+        canvas.width = window.innerWidth * 1;
+        canvas.height = window.innerHeight * 0.5;
 
         let drawing = false;
         let points = [];
@@ -92,6 +94,7 @@
         function stopDrawing() {
             drawing = false;
             calculateStraightness(); // Calculate straightness when drawing stops
+            showCopyButton(); // Show the copy button
         }
 
         function draw(event) {
@@ -161,6 +164,27 @@
             lineStraightnessDisplay.innerText = "Straightness: N/A";
             points = [];
             lastPoint = null;
+            copyButton.style.display = "none"; // Hide the copy button
+        }
+
+        function showCopyButton() {
+            const straightness = calculateStraightness();
+            copyButton.style.display = "block";
+            copyButton.onclick = copyToClipboard;
+        }
+
+        async function copyToClipboard() {
+            const straightness = lineStraightnessDisplay.innerText.split(': ')[1];
+            const message = `Hey, I got ${straightness} on the straightness test! How much can you get?`;
+            try {
+                await navigator.clipboard.writeText(message);
+                copyButton.innerText = "Copied!";
+                setTimeout(() => {
+                    copyButton.innerText = "Copy Result";
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
         }
     </script>
 </body>

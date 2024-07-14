@@ -194,7 +194,7 @@
 
         async function copyToClipboard() {
             const circularity = previousCircularity.toFixed(2);
-            const message = `Hey, I got ${circularity}% on the circularity test! How much can you get?`;
+            const message = `Hey, I got ${circularity}% on the circularity test! How much can you get? Try it out at https://drawcircles.vercel.app`;
             try {
                 await navigator.clipboard.writeText(message);
                 copyButton.innerText = "Copied!";
