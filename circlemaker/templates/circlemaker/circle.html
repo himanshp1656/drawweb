@@ -99,7 +99,7 @@
             radius: 5
         };
 
-        const blockedAreaRadius = 50; // Radius of the blocked area around the dot
+        const blockedAreaRadius = 50;
 
         drawDot();
 
@@ -113,9 +113,11 @@
         function startDrawing(event) {
             drawing = true;
             points = [];
+            errorCount = 0; // Reset error count on new drawing
             context.clearRect(0, 0, canvas.width, canvas.height);
             drawDot();
-            errorMessage.style.display = "none"; // Hide error message
+            errorMessage.style.display = "none";
+            errorCountDisplay.innerText = `Error Count: ${errorCount}`; // Update error count display
             event.preventDefault();
         }
 
@@ -139,10 +141,8 @@
                 y = touch.clientY - rect.top;
             }
 
-            // Check if the point is outside the blocked area
             if (isOutsideBlockedArea(x, y)) {
                 points.push({ x, y });
-
                 const circularity = calculateCircularity();
 
                 if (points.length > 1) {
@@ -157,16 +157,14 @@
                 }
 
                 previousCircularity = circularity;
-                circularityDisplay.innerText = `Circularity: ${circularity.toFixed(2)}%`;
+                circularityDisplay.innerText = `Circularity: ${(circularity - (errorCount / 10)).toFixed(2)}%`;
 
-                // Update error count based on circularity
                 if (circularity < 80) {
                     errorCount++;
                     errorCountDisplay.innerText = `Error Count: ${errorCount}`;
-                    errorMessage.style.display = "block"; // Show error message
-                } else if (circularity >= 80 && errorCount > 0) {
-                    errorCount--;
-                    errorCountDisplay.innerText = `Error Count: ${errorCount}`;
+                    errorMessage.style.display = "block";
+                } else {
+                    errorMessage.style.display = "none";
                 }
             }
 
@@ -221,10 +219,10 @@
             circularityDisplay.innerText = "Circularity: N/A";
             points = [];
             previousCircularity = 0;
-            errorCount = 0;
+            errorCount = 0; // Reset error count
             errorCountDisplay.innerText = `Error Count: ${errorCount}`;
             drawDot();
-            errorMessage.style.display = "none"; // Hide error message
+            errorMessage.style.display = "none";
             copyButton.style.display = "none";
         }
 
@@ -235,22 +233,22 @@
             if (isCircle) {
                 copyButton.style.display = "block";
                 copyButton.onclick = copyToClipboard;
-                errorMessage.style.display = "none"; // Hide error message if it's a circle
+                errorMessage.style.display = "none";
             } else {
-                errorMessage.style.display = "block"; // Show error message if not a circle
-                copyButton.style.display = "none"; // Hide copy button
+                errorMessage.style.display = "block";
+                copyButton.style.display = "none";
             }
         }
 
         function arePointsClose(start, end) {
-            const threshold = 10; // Distance threshold to consider the points "close enough"
+            const threshold = 10;
             const dx = start.x - end.x;
             const dy = start.y - end.y;
             return Math.sqrt(dx * dx + dy * dy) < threshold;
         }
 
         async function copyToClipboard() {
-            const circularity = previousCircularity.toFixed(2);
+            const circularity = (previousCircularity - (errorCount / 10)).toFixed(2);
             const message = `Hey, I got ${circularity}% on the circularity test! How much can you get? Try it out at https://drawcircles.vercel.app`;
             try {
                 await navigator.clipboard.writeText(message);
