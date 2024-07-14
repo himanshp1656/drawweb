@@ -1,14 +1,14 @@
-
 {
-    "builds": [{
+    "builds": [
+      {
         "src": "circle/wsgi.py",
-        "use": "@ardnt/vercel-python-wsgi",
-        "config": { "maxLambdaSize": "15mb" }
-    }],
+        "use": "@vercel/python"
+      }
+    ],
     "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "circle/wsgi.py"
-        }
+      {
+        "src": "/(.*)",
+        "dest": "circle/wsgi.py"
+      }
     ]
 }
