@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a; /* Dark background */
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #f39c12; /* Bright color for headings */
+            margin-bottom: 20px;
+        }
+
+        .prize {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em; /* Increased font size */
+            color: #333; /* Darker text color */
+            background-color: #f39c12; /* Yellow background */
+            padding: 15px;
+            border-radius: 8px; /* Rounded corners */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Shadow effect */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Shadow effect */
+        }
+
+        th, td {
+            padding: 15px; /* Increased padding */
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #333; /* Darker header */
+            color: #f39c12; /* Header text color */
+            font-size: 1.2em; /* Larger header text */
+        }
+
+        tr:nth-child(even) {
+            background-color: #2a2a2a; /* Zebra striping */
+        }
+
+        tr:hover {
+            background-color: #444; /* Highlight on hover */
+        }
+
+        .footer {
+            margin-top: 20px;
+            padding: 10px;
+            text-align: center;
+            border-top: 1px solid #444;
+            color: #ddd; /* Lighter color for footer */
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: white;
+            background-color: #f39c12;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #e67e22; /* Darker on hover */
+        }
+    </style>
+</head>
+<body>
+    <h1>Leaderboard</h1>
+    
+    <div class="prize">
+        Today's prize: {{ prize }}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Username</th>
+                <th>Coins</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td>{{ profile.rank }}</td>
+                    <td>{{ profile.user.username }}</td>
+                    <td>{{ profile.coin }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="/">Back to Home</a>
+
+    <div class="footer">
+        Your prize will be sent to your email.Terms and conditions apply.
+    </div>
+</body>
+</html>

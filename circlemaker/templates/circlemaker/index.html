@@ -15,6 +15,7 @@
             height: 100vh;
             margin: 0;
             text-align: center;
+            position: relative;
         }
 
         h1 {
@@ -46,19 +47,155 @@
         button:active {
             transform: scale(0.95);
         }
+
+        #signup-form, #login-form {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        .top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-align: left;
+        }
+
+        .cancel-btn {
+            background-color: transparent;
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            button {
+                padding: 10px 15px;
+                font-size: 1.2rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            button {
+                padding: 8px 12px;
+                font-size: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="top-left">
+        <a href="/leaderboard">
+            <button>Leaderboard</button>
+        </a>
+    </div>
+    <div class="top-right">
+        {% if user.is_authenticated %}
+            <a href="/logout/">
+                <button>Logout</button>
+            </a>    
+            <a href="/profile">
+                <button>Profile</button>
+            </a>
+        {% else %}
+            <button onclick="showForm('signup-form')">Signup</button>
+            <button onclick="showForm('login-form')">Login</button>
+        {% endif %}
+    </div>
+
     <div>
         <h1>Welcome to the Drawing App</h1>
         <a href="/circle">
             <button>Draw Circle</button>
         </a>
         <br><br>
-        <a href="/line">
+        <!-- <a href="/line">
             <button>Draw Line</button>
-        </a>
+        </a> -->
+
+        <div id="signup-form">
+            <button class="cancel-btn" onclick="hideForms()">✖</button>
+            <h2>Signup</h2>
+            <form method="post" action="/signup/">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Username" required><br>
+                <input type="password" name="password" placeholder="Password" required><br>
+                <input type="email" name="email" placeholder="Email" required><br>
+                <input type="text" name="referal" id="referral" placeholder="Referral link (optional)"><br>
+                <button type="submit">Signup</button>
+            </form>
+        </div>
+
+        <div id="login-form">
+            <button class="cancel-btn" onclick="hideForms()">✖</button>
+            <h2>Login</h2>
+            <form method="post" action="/login/">
+                {% csrf_token %}
+                <input type="text" name="username" placeholder="Username" required><br>
+                <input type="password" name="password" placeholder="Password" required><br>
+                <button type="submit">Login</button>
+            </form>
+        </div>
     </div>
-    <script src="/_vercel/insights/script.js" defer></script>
+
+    <script>
+        function showForm(formId) {
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById(formId).style.display = 'block';
+        }
+
+        function hideForms() {
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'none';
+        }
+
+        function getReferralCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralCode = urlParams.get('referral');
+            if (referralCode) {
+                document.getElementById('referral').value = referralCode;
+                showForm('signup-form'); // Automatically show the signup form
+            }
+        }
+        window.onload = getReferralCode;
+    </script>
 </body>
 </html>

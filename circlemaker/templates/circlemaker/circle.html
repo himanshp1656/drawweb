@@ -230,16 +230,60 @@
         function showCopyButton() {
             const circularity = previousCircularity.toFixed(2);
             const isCircle = points.length > 2 && arePointsClose(points[0], points[points.length - 1]);
-
+            console.log(`User Score: ${circularity}%`);
+            
             if (isCircle) {
                 copyButton.style.display = "block";
                 copyButton.onclick = copyToClipboard;
                 errorMessage.style.display = "none";
+                if (circularity >= 80){
+                    addcoin(circularity);
+                }
             } else {
                 errorMessage.style.display = "block";
                 copyButton.style.display = "none";
             }
+
         }
+
+        async function addcoin(point) {
+    try {
+        const response = await fetch('/addcoin/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'), // Ensure CSRF token is included
+            },
+            body: JSON.stringify({ coins: point }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`Added ${amount} coins successfully!`, data);
+        } else {
+            console.error('Failed to add coins:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error adding coins:', error);
+    }
+}
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
 
         function arePointsClose(start, end) {
             const threshold = 10;
