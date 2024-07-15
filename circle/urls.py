@@ -20,7 +20,7 @@ from django.urls import path
 from django.urls import include, path
 
 from circlemaker import views
-import settings
+from . import settings
 from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
