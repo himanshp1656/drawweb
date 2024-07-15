@@ -38,7 +38,7 @@ def login_view(request):
         except Exception as e:
             messages.error(request, "An unexpected error occurred: " + str(e))
     
-    return render(request, 'circlemaker/login.html')
+    return render(request, 'circlemaker/index.html')
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
